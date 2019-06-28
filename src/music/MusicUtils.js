@@ -19,27 +19,29 @@ module.exports = class MusicUtils {
                 await Promise.all(playlist.map(async song => {
                     try {
                         song = await this.client.music.api.getVideoByID(song.id).then(res => { return res });
-                    } catch (e) { return false }
-                    songs.push({
-                        name: song.title,
-                        url: `https://www.youtube.com/watch?v=${song.id}`,
-                        thumbnail: song.thumbnails.default,
-                        channelOwner: song.raw.snippet.channelTitle,
-                        tags: song.raw.snippet.tags,
-                        publishedAt: song.publishedAt,
-                        duration: song.duration,
-                        live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
-                    })
+                        let { maxres, high, medium, standard } = song.thumbnails;
+                        songs.push({
+                            name: song.title,
+                            url: `https://www.youtube.com/watch?v=${song.id}`,
+                            thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
+                            channelOwner: song.raw.snippet.channelTitle,
+                            tags: song.raw.snippet.tags,
+                            publishedAt: song.publishedAt,
+                            duration: song.duration,
+                            live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
+                        })
+                    } catch (e) { }
                 }))
             } catch (e) { }
         } else {
             try {
                 const song = await this.client.music.api.getVideo(url).then(res => { return res });
                 if (song.raw.snippet.liveBroadcastContent != 'live') {
+                    let { maxres, high, medium, standard } = song.thumbnails;
                     songs.push({
                         name: song.title,
                         url: `https://www.youtube.com/watch?v=${song.id}`,
-                        thumbnail: song.thumbnails.default,
+                        thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
                         channelOwner: song.raw.snippet.channelTitle,
                         tags: song.raw.snippet.tags,
                         publishedAt: song.publishedAt,
@@ -53,16 +55,17 @@ module.exports = class MusicUtils {
         return songs;
     }
 
-    async getSongByTitle(searsh) {
+    async getSongByTitle(search) {
         if (!this.client.music.api || !this.client.music.module) throw new Error('No YoutubeApi loaded!');
-        let song = await this.client.music.api.searchVideos(searsh, 1).then(res => { return res });
+        let song = await this.client.music.api.searchVideos(search, 1).then(res => { return res });
         if (!song.length) return false;
         song = await this.client.music.api.getVideoByID(song[0].id).then(res => { return res });
         if (song.raw.snippet.liveBroadcastContent != 'live') {
+            let { maxres, high, medium, standard } = song.thumbnails;
             let opts = {
                 name: song.title,
                 url: `https://www.youtube.com/watch?v=${song.id}`,
-                thumbnail: song.thumbnails.default,
+                thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
                 channelOwner: song.raw.snippet.channelTitle,
                 tags: song.raw.snippet.tags,
                 publishedAt: song.publishedAt,

@@ -1,4 +1,4 @@
-const { Queue } = require("./listens");
+const { QueueMusic } = require("./listens");
 const MusicUtils = require("./MusicUtils.js");
 
 module.exports = class MusicPlayer extends MusicUtils {
@@ -12,11 +12,11 @@ module.exports = class MusicPlayer extends MusicUtils {
         let guildQueue = this.queue.get(guild.id);
 
         if (!guildQueue) {
-            guildQueue = new (Queue)(guild, channel, this.client);
+            guildQueue = new (QueueMusic)(guild, channel, this.client);
             guildQueue.set();
         }
 
-        if (guildQueue.songs.length) {
+        if (guildQueue.songPlaying) {
             return guildQueue.pushSongs(songs, addedBy)
         } else {
             return this.player(guildQueue, songs, addedBy);
