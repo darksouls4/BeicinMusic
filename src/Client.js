@@ -5,7 +5,7 @@ module.exports = class BeicinMusic extends Client {
     constructor(options = {}) {
         super(options)
         this.prefix = 'bm!'
-        this.managers = []
+        this.managers = ['254797971831390211', '221865218840592384']
         this.collection = Collection
     }
 
