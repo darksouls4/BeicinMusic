@@ -11,18 +11,18 @@ module.exports = class Queue extends Command {
     async run({ channel, guild, author }) {
         const embed = new ClientEmbed(author);
         const guildQueue = await this.client.music.module.queue.get(guild.id);
-        if (guildQueue && guildQueue.songs) {
+        if (guildQueue && guildQueue.songPlaying) {
             return channel.send(embed
                 .setTitle(`Lista de Reprodução - **${guild.name}**`)
                 .setDescription(
                     [
-                        ('▶ Atual\n' + `**[${guildQueue.songPlaying.name}](${guildQueue.songPlaying.url})**`),
-                        ('\n🎶 Lista de Reprodução\n' + (guildQueue.songs.length == 1
-                            ? 'Nenhuma música após essa.'
-                            : (guildQueue.songs.length - 1) <= 8
-                                ? guildQueue.songs.map((s, n) => `\`${n}°\` - **[${s.name}](${s.url})**, por **${s.addedBy.tag}**`).slice(1, 9).join('\n')
-                                : guildQueue.songs.map((s, n) => `\`${n}°\` - **[${s.name}](${s.url})**, por **${s.addedBy.tag}**`).slice(1, 9).join('\n')
-                                + `\nE mais **${((guildQueue.songs.length - 1) - 8)}**...`
+                        ('▶ Atual: ' + `**[${guildQueue.songPlaying.name}](${guildQueue.songPlaying.url})**`),
+                        ('\n🎶 Lista de Reprodução\n' + (!guildQueue.songs.length
+                            ? 'Nenhuma música após a atual.'
+                            : guildQueue.songs.length <= 10
+                                ? guildQueue.songs.map((s, n) => `\`${n + 1}.\` - **[${s.name}](${s.url})**, por **${s.addedBy.toString()}**`).slice(0, 10).join('\n')
+                                : guildQueue.songs.map((s, n) => `\`${n + 1}.\` - **[${s.name}](${s.url})**, por **${s.addedBy.toString()}**`).slice(0, 10).join('\n')
+                                + `\nE mais **${(guildQueue.songs.length - 10)}**...`
                         ))
                     ].join('\n')
                 )
