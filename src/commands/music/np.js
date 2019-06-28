@@ -8,16 +8,25 @@ module.exports = class Nowplaying extends Command {
         })
     }
 
-    async run({ channel, guild, author }) {
+    async run({ args, channel, guild, author }) {
         const embed = new ClientEmbed(author);
         const guildQueue = await this.client.music.module.queue.get(guild.id);
         if (guildQueue && guildQueue.songPlaying) {
-            const song = guildQueue.songPlaying;
-            const duration = this.getDuration(song, guildQueue);
-            return channel.send(embed
-                .setDescription(`Tocando Agora: **[${song.name}](${song.url})**`)
+            const argsSong = args[0] && !isNaN(args[0]) && guildQueue.songs[(Number(args[0]) - 1)];
+            const { song, footer, duration, timestamp } = {
+                song: argsSong || guildQueue.songPlaying,
+                footer: argsSong
+                    ? `Tocando agora: ${guildQueue.songPlaying.name}`
+                    : author.username,
+                duration: argsSong ? false : true,
+                timestamp: argsSong ? false : true
+            }
+            const songDuration = this.getDuration(song, guildQueue, duration);
+            return channel.send(new ClientEmbed(author, timestamp)
+                .setDescription(`**[${song.name}](${song.url})**`)
                 .addField('Adicionado Por', song.addedBy.toString(), true)
-                .addField('Duração', duration, true)
+                .addField('Duração', songDuration, true)
+                .setFooter(footer, author.displayAvatarURL)
                 .setThumbnail(song.thumbnail.url)
             )
         } else {
@@ -28,7 +37,7 @@ module.exports = class Nowplaying extends Command {
         }
     }
 
-    getDuration(s, q) {
-        return `\`[${q.nowDuration}/${s.durationContent}]\``
+    getDuration(s, q, d) {
+        return d ? `\`[${q.nowDuration}/${s.durationContent}]\`` : `\`[${s.durationContent}]\``;
     }
 }
