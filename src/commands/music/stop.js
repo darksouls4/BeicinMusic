@@ -14,7 +14,7 @@ module.exports = class Stop extends Command {
 
         const embed = new ClientEmbed(author);
         const guildQueue = await this.client.music.module.queue.get(guild.id);
-        if (guildQueue && guildQueue.songs.length) {
+        if (guildQueue && guildQueue.songPlaying) {
             guildQueue.stop();
             return channel.send(embed
                 .setTitle('A queue foi finalizada!')
