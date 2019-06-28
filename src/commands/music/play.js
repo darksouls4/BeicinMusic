@@ -13,17 +13,17 @@ module.exports = class Play extends Command {
         const trueResult = await this.verifyVoice(guild, channel, author, voiceChannel);
         if (!trueResult) return;
 
-        const paramUrl = new RegExp("^https?:\/\/(www.)?youtube.com\/(playlist|watch)");
-        const searsh = args.slice(0).join(' ');
+        const paramUrl = /(?:www\.)?(?:youtu\.be|youtube\.com)/;
+        const search = args.slice(0).join(' ');
         const embed = new ClientEmbed(author);
 
-        if (searsh) {
+        if (search) {
             let result = false;
-            if (searsh.match(paramUrl)) {
+            if (search.match(paramUrl)) {
                 const url = args.find(m => m.match(paramUrl));
                 result = await this.client.music.utils.getUrlSong(url);
             } else {
-                result = await this.client.music.utils.getSongByTitle(searsh);
+                result = await this.client.music.utils.getSongByTitle(Util.escapeMarkdown(search));
             }
 
             if (result.length) {
@@ -57,20 +57,20 @@ module.exports = class Play extends Command {
     }
 
     responseMusic(queue, channel) {
-        const send = (e) => channel.send(e);
+        const send = async (e) => { return channel.send(e) };
         const embed = (u, d, c) => {
             const e = new ClientEmbed(u).setDescription(d);
-            if (c) e.setColor(process.env.ERR_COLOR);
-            return e;
+            return c ? e.setColor(process.env.ERR_COLOR) : e;
         }
 
-        queue.on('start', (s) => send(embed(s.addedBy, `Começando a tocar: **[${s.name}](${s.url})** \`[${s.durationContent}]\``)));
-        queue.on('stop', (u) => send(embed(u, 'A lista de reprodução acabou!', true)));
+        queue.on('stop', (u, l) => l || send(embed(u, 'A lista de reprodução acabou!', true)));
+        queue.on('start', (s) => send(embed(s.addedBy, `Começando a tocar: **[${s.name}](${s.url})** \`[${s.durationContent}]\``)).then((m) => queue.setLastMesage(m)));
+        queue.on('error', (s) => send(embed(s.addedBy, `Ocorreu um erro ao tentar reproduzir a música: **[${s.name}](${s.url})**`, true)));
         queue.on('queue', (s, u) => {
             if (s.length > 1) {
-                send(embed(u, `Adicionei **${s.length}** musicas na queue!`));
+                send(embed(u, `Adicionei **${s.length}** musicas na queue!`)).then(m => m.delete({ timeout: 30000 }));
             } else {
-                send(embed(u, `Adicionei a música **[${s[0].name}](${s[0].url})** na queue!`));
+                send(embed(u, `Adicionei a música **[${s[0].name}](${s[0].url})** na queue!`)).then(m => m.delete({ timeout: 20000 }));
             }
         })
     }
