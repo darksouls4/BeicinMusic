@@ -1,4 +1,4 @@
 module.exports = {
-    Queue: require("./Queue.js"),
-    Guild: require("./Guild.js")
+    QueueMusic: require("./QueueMusic.js"),
+    GuildMusic: require("./GuildMusic.js")
 }
