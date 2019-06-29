@@ -24,10 +24,11 @@ module.exports = class Nowplaying extends Command {
             const songDuration = this.getDuration(song, guildQueue, duration);
             return channel.send(new ClientEmbed(author, timestamp)
                 .setDescription(`**[${song.name}](${song.url})**`)
-                .addField('Adicionado Por', song.addedBy.toString(), true)
+                .addField('Adicionado Por', song.addedBy.toString(), false)
                 .addField('Duração', songDuration, true)
-                .setFooter(footer, author.displayAvatarURL)
-                .setThumbnail(song.thumbnail.url)
+                .addField('Posição na Queue', argsSong ? `**\`${(guildQueue.songs.indexOf(argsSong) + 1)}°\`**` : '**\`Tocando Agora\`**', true)
+                .setFooter(footer, author.displayAvatarURL())
+                .setImage(song.thumbnail.url)
             )
         } else {
             return channel.send(embed
@@ -38,6 +39,6 @@ module.exports = class Nowplaying extends Command {
     }
 
     getDuration(s, q, d) {
-        return d ? `\`[${q.nowDuration}/${s.durationContent}]\`` : `\`[${s.durationContent}]\``;
+        return d ? `**\`[${q.nowDuration}/${s.durationContent}]\`**` : `**\`[${s.durationContent}]\`**`;
     }
 }
