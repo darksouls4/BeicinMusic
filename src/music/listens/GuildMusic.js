@@ -15,7 +15,7 @@ const streamOptions = {
     seek: 0,
     passes: 2,
     type: 'opus',
-    bitrate: 96
+    bitrate: 192
 }
 
 module.exports = class GuildMusic extends EventEmitter {
@@ -33,7 +33,7 @@ module.exports = class GuildMusic extends EventEmitter {
             return this.client.emit('updatePresenceForMusic');
         });
         this.on('stop', async () => {
-            if (this._queue.loop) return this.restartPlayerForLoop();
+            if (this._queue.loop) return this._queue.songsBackup && this.restartPlayerForLoop();
             this.removeAllListeners();
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
@@ -79,9 +79,7 @@ module.exports = class GuildMusic extends EventEmitter {
         let durationTotal = []
         for (let tag of durationTags) {
             let inTag = s.duration[tag];
-            if (inTag) {
-                durationTotal.push(inTag > 9 ? inTag : `0${inTag}`)
-            }
+            if (inTag) durationTotal.push(inTag > 9 ? inTag : `0${inTag}`);
         }
         return durationTotal.length > 1 ? durationTotal.map(d => d).join(':') : `00:${durationTotal[0]}`;
     }
