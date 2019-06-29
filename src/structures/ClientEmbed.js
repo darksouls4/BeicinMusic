@@ -5,6 +5,6 @@ module.exports = class ClientEmbed extends MessageEmbed {
         super({});
         this.setColor(process.env.COLOR_EMBED)
         if (timestamp) this.setTimestamp();
-        if (user) this.setFooter(user.username, user.displayAvatarURL)
+        if (user) this.setFooter(user.username, user.displayAvatarURL())
     }
 }
