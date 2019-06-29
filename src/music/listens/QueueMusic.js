@@ -11,7 +11,7 @@ module.exports = class MusicQueue extends GuildMusic {
         this.guild = guild
         this.songs = []
         this.songsBackup = []
-        this.volume = 150
+        this.volume = 120
         this.loop = false
         this.playing = false
         this.songPlaying = false
@@ -24,10 +24,20 @@ module.exports = class MusicQueue extends GuildMusic {
         return this;
     }
 
+    get queueFullDuration() {
+        let arr = this.songs.concat([this.songPlaying]);
+        for (let i = 0; i < arr.length; i++) arr[i] = arr[i].ms;
+        const calcInSeconds = arr.reduce((a, b) => a + b, 0);
+        return moment.duration(calcInSeconds, 'seconds').format('hh:mm:ss', { stopTrim: 'm' });
+    }
+
     get nowDuration() {
-        return moment.duration(this.dispatcher.time, 'milliseconds').format('hh:mm:ss', {
-            stopTrim: 'm'
-        })
+        let stopTrim = this.songPlaying.durationContent.split(':').length > 2 ? 'h' : 'm';
+        let calcAtual = ((this.dispatcher.pausedSince
+            ? this.dispatcher.pausedSince
+            : new Date()
+        ) - (this.dispatcher._pausedTime) - this.dispatcher.startTime) / 1000;
+        return moment.duration(calcAtual * 1000, 'milliseconds').format('hh:mm:ss', { stopTrim });
     }
 
     set() {
@@ -62,6 +72,13 @@ module.exports = class MusicQueue extends GuildMusic {
     setLastMesage(msg) {
         this.lastMessage = msg;
         this.lastMessageId = msg.id;
+    }
+
+    resetQueue() {
+        this.songs.splice(0);
+        this.songsBackup.splice(0);
+        this.loop = false;
+        this.volume = 120
     }
 
     async volUpdate(vol) {
