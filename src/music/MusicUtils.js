@@ -1,3 +1,23 @@
+const { Util } = require("discord.js");
+const SongParameters = require("./utils/SongParameters.js");
+
+const getOpts = (song) => {
+    if (!song) return [];
+    const { maxres, high, medium, standard } = song.thumbnails;
+    return {
+        name: Util.escapeMarkdown(song.title),
+        url: `https://www.youtube.com/watch?v=${song.id}`,
+        ms: SongParameters.getDurationInSeconds(song.duration),
+        id: song.id,
+        thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
+        channelOwner: song.raw.snippet.channelTitle,
+        tags: song.raw.snippet.tags,
+        publishedAt: song.publishedAt,
+        duration: song.duration,
+        live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
+    }
+}
+
 module.exports = class MusicUtils {
     constructor(client) {
         this.client = client
@@ -9,71 +29,37 @@ module.exports = class MusicUtils {
 
     async getUrlSong(url) {
         if (!this.client.music.api || !this.client.music.module) throw new Error('No YoutubeApi loaded!');
-        const songs = [];
 
-        if (url.includes('playlist?list=')) {
-            try {
-                const playlist = await this.client.music.api.getPlaylist(url).then(async res => {
-                    return await res.getVideos()
-                });
-                await Promise.all(playlist.map(async song => {
-                    try {
-                        song = await this.client.music.api.getVideoByID(song.id).then(res => { return res });
-                        let { maxres, high, medium, standard } = song.thumbnails;
-                        songs.push({
-                            name: song.title,
-                            url: `https://www.youtube.com/watch?v=${song.id}`,
-                            thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
-                            channelOwner: song.raw.snippet.channelTitle,
-                            tags: song.raw.snippet.tags,
-                            publishedAt: song.publishedAt,
-                            duration: song.duration,
-                            live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
-                        })
-                    } catch (e) { }
-                }))
-            } catch (e) { }
-        } else {
-            try {
-                const song = await this.client.music.api.getVideo(url).then(res => { return res });
-                if (song.raw.snippet.liveBroadcastContent != 'live') {
-                    let { maxres, high, medium, standard } = song.thumbnails;
-                    songs.push({
-                        name: song.title,
-                        url: `https://www.youtube.com/watch?v=${song.id}`,
-                        thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
-                        channelOwner: song.raw.snippet.channelTitle,
-                        tags: song.raw.snippet.tags,
-                        publishedAt: song.publishedAt,
-                        duration: song.duration,
-                        live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
-                    })
+        switch (SongParameters.typeUrl(url)) {
+            case 'video': {
+                const song = await this.client.music.api.getVideo(url).catch(() => false);
+                return song ? [getOpts(song)] : [];
+            }
+            case 'playlist': {
+                const songs = [];
+                const playlist = await this.client.music.api.getPlaylist(url)
+                    .then(res => res.getVideos())
+                    .catch(() => []);
+                if (playlist.length) {
+                    await Promise.all(playlist.map(async (song) => {
+                        song = await this.client.music.api.getVideoByID(song.id).catch(() => false);
+                        if (song) return songs.push(getOpts(song));
+                    }))
                 }
-            } catch (e) { }
+                return songs;
+            }
+            default: []
         }
-        if (!songs.length) return false;
-        return songs;
     }
 
     async getSongByTitle(search) {
         if (!this.client.music.api || !this.client.music.module) throw new Error('No YoutubeApi loaded!');
-        let song = await this.client.music.api.searchVideos(search, 1).then(res => { return res });
-        if (!song.length) return false;
-        song = await this.client.music.api.getVideoByID(song[0].id).then(res => { return res });
-        if (song.raw.snippet.liveBroadcastContent != 'live') {
-            let { maxres, high, medium, standard } = song.thumbnails;
-            let opts = {
-                name: song.title,
-                url: `https://www.youtube.com/watch?v=${song.id}`,
-                thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
-                channelOwner: song.raw.snippet.channelTitle,
-                tags: song.raw.snippet.tags,
-                publishedAt: song.publishedAt,
-                duration: song.duration,
-                live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
-            }
-            return [opts];
-        }
-        return false;
+        const song = await this.client.music.api.searchVideos(search, 1);
+        return (song.length
+            ? [getOpts(
+                await this.client.music.api.getVideoByID(song[0].id)
+            )]
+            : []
+        )
     }
 }
