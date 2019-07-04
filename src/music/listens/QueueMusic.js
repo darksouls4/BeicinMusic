@@ -11,7 +11,7 @@ module.exports = class MusicQueue extends GuildMusic {
         this.guild = guild
         this.songs = []
         this.songsBackup = []
-        this.volume = 120
+        this.volume = 150
         this.loop = false
         this.playing = false
         this.songPlaying = false
@@ -27,17 +27,13 @@ module.exports = class MusicQueue extends GuildMusic {
     get queueFullDuration() {
         let arr = this.songs.concat([this.songPlaying]);
         for (let i = 0; i < arr.length; i++) arr[i] = arr[i].ms;
-        const calcInSeconds = arr.reduce((a, b) => a + b, 0);
+        let calcInSeconds = (arr.reduce((a, b) => a + b, 0)) - (this.dispatcher.streamTime / 1000);
         return moment.duration(calcInSeconds, 'seconds').format('hh:mm:ss', { stopTrim: 'm' });
     }
 
     get nowDuration() {
         let stopTrim = this.songPlaying.durationContent.split(':').length > 2 ? 'h' : 'm';
-        let calcAtual = ((this.dispatcher.pausedSince
-            ? this.dispatcher.pausedSince
-            : new Date()
-        ) - (this.dispatcher._pausedTime) - this.dispatcher.startTime) / 1000;
-        return moment.duration(calcAtual * 1000, 'milliseconds').format('hh:mm:ss', { stopTrim });
+        return moment.duration(this.dispatcher.streamTime, 'milliseconds').format('hh:mm:ss', { stopTrim });
     }
 
     set() {
@@ -83,12 +79,7 @@ module.exports = class MusicQueue extends GuildMusic {
 
     async volUpdate(vol) {
         this.volume = vol;
-        let VOL1 = (this.volume > 250 ? 180 : this.volume > 150 ? 100 : this.volume > 50 ? 100 : 80) / 100;
-        vol = this.setVol(vol);
-        this.dispatcher.setVolumeLogarithmic(VOL1 + (VOL1 / 5));
-        await new Promise((resolve, reject) => setTimeout(resolve, 2000));
-        this.dispatcher.setVolumeLogarithmic(VOL1);
-        await new Promise((resolve, reject) => setTimeout(resolve, 1000));
-        return this.dispatcher.setVolumeLogarithmic(vol);
+        let volume = this.setVol(vol);
+        return this.dispatcher.setVolume(volume);
     }
 }

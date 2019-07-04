@@ -1,21 +1,14 @@
 const { EventEmitter } = require("events");
-
-/* 
-    Utilizar um dos dois modulos abaixo, para obter fluxo da stream.
-    Recomendado: 'ytdlDiscord'
-    Obs: caso for utilizar 'ytdl-core' use as opções listadas abaixo!.
-    const ytdlOptions = { filter: 'audioonly', quality: 'lowest' }
-*/
-
-const ytdl = require("ytdl-core");
-const YoutubeDl = require('youtube-dl');
 const ytdlDiscord = require('ytdl-core-discord');
+const moment = require("moment");
 
 const streamOptions = {
+    fec: true,
     seek: 0,
-    passes: 2,
+    passes: 8,
     type: 'opus',
-    bitrate: 192
+    bitrate: 192,
+    highWaterMark: 36
 }
 
 module.exports = class GuildMusic extends EventEmitter {
@@ -28,6 +21,7 @@ module.exports = class GuildMusic extends EventEmitter {
 
         this.on('stopForce', () => {
             this.removeAllListeners();
+            this.dispatcher.destroy();
             this.connection.disconnect();
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
@@ -44,7 +38,12 @@ module.exports = class GuildMusic extends EventEmitter {
         if (!song || !song.url) throw new Error('No song identify');
         streamOptions['volume'] = this._queue.setVol(this._queue.volume);
 
-        this.dispatcher = await this.connection.play(await ytdlDiscord(song.url), streamOptions);
+        const stream = await ytdlDiscord(song.url);
+        stream.on('error', () => {
+            this.emit('error', song);
+            this.dispatcher.end();
+        });
+        this.dispatcher = await this.connection.play(stream, streamOptions);
         this.emiters(song);
         this._queue.playing = true
         this._queue.songPlaying = song
@@ -63,9 +62,9 @@ module.exports = class GuildMusic extends EventEmitter {
         if (this.dispatcher) {
             this.dispatcher.on('start', () => this.emit('start', s));
             this.dispatcher.on('error', () => this.emit('error', s));
-            this.dispatcher.on('end', (s) => {
+            this.dispatcher.on('finish', () => {
                 this.deleteLastMessage();
-                if (s !== true) this.viewQueueContent();
+                this.viewQueueContent();
             });
         }
     }
@@ -75,13 +74,7 @@ module.exports = class GuildMusic extends EventEmitter {
     }
 
     setSongDuration(s) {
-        const durationTags = ['weeks', 'years', 'months', 'days', 'hours', 'minutes', 'seconds'];
-        let durationTotal = []
-        for (let tag of durationTags) {
-            let inTag = s.duration[tag];
-            if (inTag) durationTotal.push(inTag > 9 ? inTag : `0${inTag}`);
-        }
-        return durationTotal.length > 1 ? durationTotal.map(d => d).join(':') : `00:${durationTotal[0]}`;
+        return moment.duration(s.ms, 'seconds').format('hh:mm:ss', { stopTrim: 'm' });
     }
 
     async viewQueueContent() {
