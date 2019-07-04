@@ -56,7 +56,7 @@ module.exports = class Play extends Command {
     }
 
     responseMusic(queue, channel) {
-        const send = async (e) => { return channel.send(e) };
+        const send = async (e) => channel.send(e);
         const embed = (u, d, c) => {
             const e = new ClientEmbed(u).setDescription(d);
             return c ? e.setColor(process.env.ERR_COLOR) : e;
