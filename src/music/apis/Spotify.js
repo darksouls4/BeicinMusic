@@ -1,5 +1,4 @@
 const snekfetch = require('snekfetch');
-const { Util } = require("discord.js");
 
 const TOKEN_URL = 'https://accounts.spotify.com/api/token'
 const API_URL = 'https://api.spotify.com/v1'
@@ -42,15 +41,17 @@ module.exports = class SpotifySearch {
 
     async getPlaylistById(id) {
         try {
-            const tracks = [];
+            let tracks = [];
             const getPlaylist = await this.request(`/playlists/${id}`);
             if (!getPlaylist) return [];
-            await Promise.all(getPlaylist.tracks.items.map(async (song) => {
+
+            for (let song of getPlaylist.tracks.items) {
                 try {
-                    song = await this.client.music.apis.youtube.getSongByTitle(Util.escapeMarkdown(song.track.name));
+                    song = await this.client.music.apis.youtube.getSongByTitle(song.track.name);
                     if (song.length) tracks = tracks.concat(song);
                 } catch (e) { }
-            }))
+            }
+
             return tracks;
         } catch (e) {
             return [];
@@ -61,7 +62,7 @@ module.exports = class SpotifySearch {
         try {
             const song = await this.request(`/tracks/${id}`);
             if (!song) return [];
-            return await this.client.music.apis.youtube.getSongByTitle(Util.escapeMarkdown(song.name));
+            return await this.client.music.apis.youtube.getSongByTitle(song.name);
         } catch (e) {
             return [];
         }
@@ -69,7 +70,7 @@ module.exports = class SpotifySearch {
 
     async request(endpoint, queryParams = {}) {
         if (this.isTokenExpired) await this.getToken()
-        return snekfetch.get(`${API_URL}${endpoint}`).query(queryParams).set(this.tokenHeaders).then(r => r.body)
+        return await snekfetch.get(`${API_URL}${endpoint}`).query(queryParams).set(this.tokenHeaders).then(r => r.body)
     }
 
     async getToken() {
