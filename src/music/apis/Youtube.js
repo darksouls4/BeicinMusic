@@ -68,12 +68,9 @@ module.exports = class YoutubeSearch {
 
     async getSongByTitle(search) {
         if (!this.api || !this.client.music.module) throw new Error('No YoutubeApi loaded!');
-        const song = await this.api.searchVideos(search, 1);
+        const song = await this.api.searchVideos(Util.escapeMarkdown(search), 1);
         return (song.length
-            ? [getOpts(
-                await this.api.getVideoByID(song[0].id)
-            )]
-            : []
+            ? [getOpts(await this.api.getVideoByID(song[0].id))] : []
         )
     }
 }
