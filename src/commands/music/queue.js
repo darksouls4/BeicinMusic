@@ -21,10 +21,10 @@ module.exports = class Queue extends Command {
                     `▶ Atual: **\`[${guildQueue.nowDuration}/${guildQueue.songPlaying.durationContent}]\`** - **[${guildQueue.songPlaying.name}](${guildQueue.songPlaying.url})**`,
                     '\n🎶 Lista de Reprodução\n' + (!guildQueue.songs.length
                         ? 'Nenhuma música após a atual.'
-                        : guildQueue.songs.length <= 5
-                            ? guildQueue.songs.map((s, n) => `\`${n + 1}.\` - **[${s.name}](${s.url})**, por **${s.addedBy.toString()}**`).join('\n')
-                            : guildQueue.songs.map((s, n) => `\`${n + 1}.\` - **[${s.name}](${s.url})**, por **${s.addedBy.toString()}**`).slice(0, 5).join('\n')
-                            + `\nE mais **${(guildQueue.songs.length - 5)}**...`
+                        : guildQueue.songs.length <= 10
+                            ? guildQueue.songs.map((s, n) => `\`${n + 1}.\` **[${s.name}](${s.url})**, por **${s.addedBy.toString()}**.`).join('\n')
+                            : guildQueue.songs.map((s, n) => `\`${n + 1}.\` **[${s.name}](${s.url})**, por **${s.addedBy.toString()}**.`).slice(0, 10).join('\n')
+                            + `\ne mais **${(guildQueue.songs.length - 10)}**...`
                     )].join('\n')
                 )
             )
