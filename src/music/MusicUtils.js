@@ -1,65 +1,41 @@
-const { Util } = require("discord.js");
 const SongParameters = require("./utils/SongParameters.js");
-
-const getOpts = (song) => {
-    if (!song) return [];
-    const { maxres, high, medium, standard } = song.thumbnails;
-    return {
-        name: Util.escapeMarkdown(song.title),
-        url: `https://www.youtube.com/watch?v=${song.id}`,
-        ms: SongParameters.getDurationInSeconds(song.duration),
-        id: song.id,
-        thumbnail: maxres || high || medium || standard || song.thumbnails['default'],
-        channelOwner: song.raw.snippet.channelTitle,
-        tags: song.raw.snippet.tags,
-        publishedAt: song.publishedAt,
-        duration: song.duration,
-        live: song.raw.snippet.liveBroadcastContent == 'live' ? true : false
-    }
-}
+const { readdirSync } = require("fs");
 
 module.exports = class MusicUtils {
     constructor(client) {
         this.client = client
     }
 
-    loadUtils() {
-        this.client.music.utils = this
-    }
+    async loadUtils(dirPath = 'src/music/apis') {
+        const apis = await readdirSync(dirPath);
 
-    async getUrlSong(url) {
-        if (!this.client.music.api || !this.client.music.module) throw new Error('No YoutubeApi loaded!');
-
-        switch (SongParameters.typeUrl(url)) {
-            case 'video': {
-                const song = await this.client.music.api.getVideo(url).catch(() => false);
-                return song ? [getOpts(song)] : [];
-            }
-            case 'playlist': {
-                const songs = [];
-                const playlist = await this.client.music.api.getPlaylist(url)
-                    .then(res => res.getVideos())
-                    .catch(() => []);
-                if (playlist.length) {
-                    await Promise.all(playlist.map(async (song) => {
-                        song = await this.client.music.api.getVideoByID(song.id).catch(() => false);
-                        if (song) return songs.push(getOpts(song));
-                    }))
-                }
-                return songs;
-            }
-            default: []
+        for (let api of apis) {
+            api = new (require(`./apis/${api}`))(this.client);
+            api.load().then(() => this.client.LOG('Api was successfully loaded!', api.name));
         }
     }
 
-    async getSongByTitle(search) {
-        if (!this.client.music.api || !this.client.music.module) throw new Error('No YoutubeApi loaded!');
-        const song = await this.client.music.api.searchVideos(search, 1);
-        return (song.length
-            ? [getOpts(
-                await this.client.music.api.getVideoByID(song[0].id)
-            )]
-            : []
-        )
+    async playUrl(url) {
+        switch (SongParameters.typeUrl(url)) {
+            case 'youtubeTrack': {
+                return await this.client.music.apis.youtube.getUrlSong(url, 'video');
+            }
+            case 'youtubePlaylist': {
+                return await this.client.music.apis.youtube.getUrlSong(url, 'playlist');
+            }
+            case 'spotifyTrack': {
+                return await this.client.music.apis.spotify.getSongById(url.includes(':track:')
+                    ? url.split(':track:')[1]
+                    : url.split('/track/')[1]
+                )
+            }
+            case 'spotifyPlaylist': {
+                return await this.client.music.apis.spotify.getPlaylistById(url.includes(':playlist:')
+                    ? url.split(':playlist:')[1]
+                    : url.split('/playlist/')[1]
+                )
+            }
+            default: []
+        }
     }
 }

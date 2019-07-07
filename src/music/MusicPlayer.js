@@ -1,9 +1,7 @@
 const { QueueMusic } = require("./listens");
-const MusicUtils = require("./MusicUtils.js");
 
-module.exports = class MusicPlayer extends MusicUtils {
+module.exports = class MusicPlayer {
     constructor(client) {
-        super(client)
         this.client = client
         this.queue = new client.collection
     }
