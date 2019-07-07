@@ -13,6 +13,7 @@ module.exports = class MusicQueue extends GuildMusic {
         this.songs = []
         this.songsBackup = []
         this.volume = 200
+        this.modifyVolume = false
         this.loop = false
         this.playing = false
         this.songPlaying = false
@@ -74,15 +75,16 @@ module.exports = class MusicQueue extends GuildMusic {
     }
 
     resetQueue() {
-        this.songs.splice(0);
         this.songsBackup.splice(0);
+        this.modifyVolume = true
+        this.songs.splice(0);
         this.loop = false;
-        this.volume = 120
+        this.volume = 200
     }
 
     async volUpdate(vol) {
         this.volume = vol;
-        let volume = this.setVol(vol);
-        return this.dispatcher.setVolume(volume);
+        this.modifyVolume = true
+        return this.dispatcher.setVolume(this.setVol(vol));
     }
 }

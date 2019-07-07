@@ -7,7 +7,6 @@ const streamOptions = {
     seek: 0,
     passes: 10,
     type: 'opus',
-    volume: 1,
     bitrate: 1024,
     highWaterMark: 36
 }
@@ -38,6 +37,7 @@ module.exports = class GuildMusic extends EventEmitter {
 
     async play(song) {
         if (!song || !song.url) throw new Error('No song identify');
+        streamOptions['volume'] = this._queue.setVol(this._queue.volume);
         this._queue.songs.shift();
 
         try {
@@ -55,6 +55,8 @@ module.exports = class GuildMusic extends EventEmitter {
         this.emiters(song);
         this._queue.playing = true
         this._queue.songPlaying = song
+
+        if (!this._queue.modifyVolume) this.dispatcher.setVolumeLogarithmic(1.8);
         return this.client.emit('updatePresenceForMusic');
     }
 
@@ -62,9 +64,7 @@ module.exports = class GuildMusic extends EventEmitter {
         let song = this._queue.songs[num];
         if (!song || !song.url) throw new Error('No song identify');
         this.connection = await this._queue.voiceChannel.join();
-        return this.play(song).then(() => {
-            this.dispatcher.setVolumeLogarithmic(1.5);
-        });
+        return this.play(song);
     }
 
     emiters(s) {
