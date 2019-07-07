@@ -5,9 +5,10 @@ const moment = require("moment");
 const streamOptions = {
     fec: true,
     seek: 0,
-    passes: 8,
+    passes: 10,
     type: 'opus',
-    bitrate: 192,
+    volume: 1,
+    bitrate: 1024,
     highWaterMark: 36
 }
 
@@ -21,6 +22,7 @@ module.exports = class GuildMusic extends EventEmitter {
 
         this.on('stopForce', () => {
             this.removeAllListeners();
+            this.deleteLastMessage();
             this.dispatcher.destroy();
             this.connection.disconnect();
             this.client.music.module.queue.delete(this.guild.id);
@@ -36,18 +38,23 @@ module.exports = class GuildMusic extends EventEmitter {
 
     async play(song) {
         if (!song || !song.url) throw new Error('No song identify');
-        streamOptions['volume'] = this._queue.setVol(this._queue.volume);
+        this._queue.songs.shift();
 
-        const stream = await ytdlDiscord(song.url);
-        stream.on('error', () => {
-            this.emit('error', song);
-            this.dispatcher.end();
-        });
-        this.dispatcher = await this.connection.play(stream, streamOptions);
+        try {
+            const stream = await ytdlDiscord(song.url);
+            stream.on('error', () => {
+                this.emit('error', song);
+                this.viewQueueContent();
+            });
+            this.dispatcher = await this.connection.play(stream, streamOptions);
+        } catch (e) {
+            this.emit('error', song, e);
+            return this.viewQueueContent();
+        }
+
         this.emiters(song);
         this._queue.playing = true
         this._queue.songPlaying = song
-        this._queue.songs.shift();
         return this.client.emit('updatePresenceForMusic');
     }
 
@@ -55,7 +62,9 @@ module.exports = class GuildMusic extends EventEmitter {
         let song = this._queue.songs[num];
         if (!song || !song.url) throw new Error('No song identify');
         this.connection = await this._queue.voiceChannel.join();
-        return this.play(song);
+        return this.play(song).then(() => {
+            this.dispatcher.setVolumeLogarithmic(1.5);
+        });
     }
 
     emiters(s) {
@@ -74,11 +83,10 @@ module.exports = class GuildMusic extends EventEmitter {
     }
 
     setSongDuration(s) {
-        return moment.duration(s.ms, 'seconds').format('hh:mm:ss', { stopTrim: 'm' });
+        return moment.duration(s.ms, 'milliseconds').format('hh:mm:ss', { stopTrim: 'm' });
     }
 
     async viewQueueContent() {
-        this.emit('end', this._queue.songPlaying);
         let queueSong = this._queue.songs;
         if (!queueSong.length) {
             return this.emit('stop', this._queue.songPlaying.addedBy, this._queue.loop);
