@@ -7,14 +7,13 @@ const { readdirSync, readdir } = require("fs");
 module.exports = class CommandsLoader extends CommandLoader {
     constructor(client) {
         super(client)
-
         this.client = client
         this.name = 'CommandsLoader'
         this.commands = {
             all: new client.collection,
             subcommands: new client.collection,
             categories: [],
-            load: async (cmd) => { return await this.CommandLoad(cmd) }
+            load: async (cmd) => await this.CommandLoad(cmd)
         }
     }
 
