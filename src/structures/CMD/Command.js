@@ -5,11 +5,29 @@ module.exports = class Command {
         this.client = client
         this.name = options.name || 'Nenhum'
         this.aliases = options.aliases || []
+        this.djRoleNeed = options.roleDj != undefined ? options.roleDj : false
+        this.managerNeed = options.managerPermission != undefined ? options.managerPermission : false
     }
 
-    async _run(command, context, { author, channel } = context) {
+    async _run(command, context, { author, member, channel } = context) {
         try {
-            await command.commandHelp.run(context);
+            if (this.managerNeed && !this.client.managers.includes(author.id)) return channel.send(new ClientEmbed(author)
+                .setTitle('Ocorreu um erro!')
+                .setColor(process.env.ERR_COLOR)
+                .setDescription('Desculpe, você precisa ser **bot manager** para executar esse comando!')
+            )
+            else {
+                if (this.djRoleNeed
+                    && !(member.roles.find(role => role.name.toLowerCase() == 'dj'.toLowerCase()) ||
+                        member.hasPermission('MANAGE_GUILD')
+                    )
+                ) return channel.send(new ClientEmbed(author)
+                    .setTitle('Ocorreu um erro!')
+                    .setColor(process.env.ERR_COLOR)
+                    .setDescription('Desculpe, você precisa ter a role **dj** ou ter a permissão **gerenciar servidor** para executar esse comando!')
+                )
+            }
+            return await command.commandHelp.run(context);
         } catch (e) {
             this.client.LOG_ERR(e, 'RunCommand', command.commandHelp.name)
             return channel.send(new ClientEmbed(author)

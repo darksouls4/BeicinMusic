@@ -12,26 +12,24 @@ module.exports = class MessageEvent {
             const verifyPrefix = PREFIX.find(prefix => message.content.startsWith(prefix));
 
             if (typeof verifyPrefix === 'string' && (message.content.length > verifyPrefix.length)) {
-                if (this.client.managers.includes(author.id)) {
-                    const args = message.content.slice(verifyPrefix.length).trim().split(/ +/g);
-                    const cmdInsert = args.shift();
-                    const command = this.client.commands.all.find(cmd => (
-                        cmd.commandHelp.name.toLowerCase() === cmdInsert.toLowerCase()
-                    ) || (
-                            cmd.commandHelp.aliases && cmd.commandHelp.aliases.includes(cmdInsert.toLowerCase())
-                        )
+                const args = message.content.slice(verifyPrefix.length).trim().split(/ +/g);
+                const cmdInsert = args.shift();
+                const command = this.client.commands.all.find(cmd => (
+                    cmd.commandHelp.name.toLowerCase() === cmdInsert.toLowerCase()
+                ) || (
+                        cmd.commandHelp.aliases && cmd.commandHelp.aliases.includes(cmdInsert.toLowerCase())
                     )
+                )
 
-                    if (command) {
-                        const context = new CommandContext({
-                            client: this.client,
-                            command,
-                            message,
-                            args,
-                        });
+                if (command) {
+                    const context = new CommandContext({
+                        client: this.client,
+                        command,
+                        message,
+                        args,
+                    });
 
-                        return command.commandHelp._run(command, context);
-                    }
+                    return command.commandHelp._run(command, context);
                 }
             }
         }
