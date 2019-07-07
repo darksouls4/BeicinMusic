@@ -6,12 +6,13 @@ require("moment-duration-format");
 module.exports = class MusicQueue extends GuildMusic {
     constructor(guild, channel, client) {
         super(guild, client);
+        this.initQueue = Date.now()
         this.voiceChannel = channel
         this.client = client
         this.guild = guild
         this.songs = []
         this.songsBackup = []
-        this.volume = 150
+        this.volume = 200
         this.loop = false
         this.playing = false
         this.songPlaying = false
@@ -27,8 +28,8 @@ module.exports = class MusicQueue extends GuildMusic {
     get queueFullDuration() {
         let arr = this.songs.concat([this.songPlaying]);
         for (let i = 0; i < arr.length; i++) arr[i] = arr[i].ms;
-        let calcInSeconds = (arr.reduce((a, b) => a + b, 0)) - (this.dispatcher.streamTime / 1000);
-        return moment.duration(calcInSeconds, 'seconds').format('hh:mm:ss', { stopTrim: 'm' });
+        let calcInSeconds = (arr.reduce((a, b) => a + b, 0)) - (this.dispatcher.streamTime);
+        return moment.duration(calcInSeconds, 'milliseconds').format('hh:mm:ss', { stopTrim: 'm' });
     }
 
     get nowDuration() {
@@ -57,6 +58,8 @@ module.exports = class MusicQueue extends GuildMusic {
     }
 
     removeOne(num) {
+        let song = this.songs[num - 1];
+        if (this.songsBackup.indexOf(song) != -1) this.songsBackup.splice(this.songsBackup.indexOf(song), 1);
         return this.songs.splice((num - 1), 1);
     }
 
