@@ -4,7 +4,8 @@ module.exports = class Reset extends Command {
     constructor(client) {
         super(client, {
             name: 'reset',
-            aliases: ['resetar']
+            aliases: ['resetar'],
+            roleDj: false
         })
     }
 

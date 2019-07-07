@@ -4,7 +4,8 @@ module.exports = class Loop extends Command {
     constructor(client) {
         super(client, {
             name: 'loop',
-            aliases: ['repetir']
+            aliases: ['repetir'],
+            roleDj: true
         })
     }
 

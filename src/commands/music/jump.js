@@ -4,7 +4,8 @@ module.exports = class Jump extends Command {
     constructor(client) {
         super(client, {
             name: 'jump',
-            aliases: ['jm', 'pular']
+            aliases: ['jm', 'pular'],
+            roleDj: true
         })
     }
 

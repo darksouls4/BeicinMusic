@@ -4,7 +4,8 @@ module.exports = class Skip extends Command {
     constructor(client) {
         super(client, {
             name: 'skip',
-            aliases: ['sk']
+            aliases: ['sk'],
+            roleDj: true
         })
     }
 

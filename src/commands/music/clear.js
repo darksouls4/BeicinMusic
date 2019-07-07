@@ -4,7 +4,8 @@ module.exports = class Clear extends Command {
     constructor(client) {
         super(client, {
             name: 'clear',
-            aliases: []
+            aliases: [],
+            roleDj: true
         })
     }
 

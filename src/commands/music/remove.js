@@ -4,7 +4,8 @@ module.exports = class Remove extends Command {
     constructor(client) {
         super(client, {
             name: 'remove',
-            aliases: ['tirar']
+            aliases: ['tirar'],
+            roleDj: false
         })
     }
 

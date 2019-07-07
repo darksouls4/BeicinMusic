@@ -25,7 +25,8 @@ module.exports = class SearchSong extends Command {
     constructor(client) {
         super(client, {
             name: 'search',
-            aliases: ['searchsong']
+            aliases: ['searchsong'],
+            roleDj: false
         })
     }
 

@@ -4,7 +4,8 @@ module.exports = class Nowplaying extends Command {
     constructor(client) {
         super(client, {
             name: 'nowplaying',
-            aliases: ['np', 'tocando']
+            aliases: ['np', 'tocando'],
+            roleDj: false
         })
     }
 

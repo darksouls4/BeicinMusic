@@ -5,14 +5,15 @@ module.exports = class Play extends Command {
     constructor(client) {
         super(client, {
             name: 'play',
-            aliases: ['tocar', 'p']
+            aliases: ['tocar', 'p'],
+            roleDj: false
         })
     }
 
     async run({ voiceChannel, channel, guild, author, args }) {
         const trueResult = await this.verifyVoice(guild, channel, author, voiceChannel);
         if (trueResult) {
-            const paramUrl = /(?:www\.)?(?:youtu\.be|youtube\.com)/;
+            const paramUrl = /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
             const search = args.slice(0).join(' ');
             const embed = new ClientEmbed(author);
 
@@ -20,9 +21,9 @@ module.exports = class Play extends Command {
                 let result = false;
                 if (search.match(paramUrl)) {
                     const url = args.find(m => m.match(paramUrl));
-                    result = await this.client.music.utils.getUrlSong(url);
+                    result = await this.client.music.utils.playUrl(url);
                 } else {
-                    result = await this.client.music.utils.getSongByTitle(Util.escapeMarkdown(search));
+                    result = await  this.client.music.apis.youtube.getSongByTitle(Util.escapeMarkdown(search));
                 }
 
                 if (Array.isArray(result) && result.length) {
@@ -64,7 +65,7 @@ module.exports = class Play extends Command {
 
         queue.on('stop', (u, l) => l || send(embed(u, 'A lista de reprodução acabou!', true)));
         queue.on('start', (s) => send(embed(s.addedBy, `Começando a tocar: **[${s.name}](${s.url})** \`[${s.durationContent}]\``)).then((m) => queue.setLastMesage(m)));
-        queue.on('error', (s) => send(embed(s.addedBy, `Ocorreu um erro ao tentar reproduzir a música: **[${s.name}](${s.url})**`, true)));
+        queue.on('error', (s, e) => send(embed(s.addedBy, `Ocorreu um erro ao tentar reproduzir a música: **[${s.name}](${s.url}).**\n*__${e && e.message || e || ''}__*`, true)));
         queue.on('queue', (s, u) => {
             if (s.length > 1) send(embed(u, `Adicionei **${s.length}** musicas na queue!`));
             else {
