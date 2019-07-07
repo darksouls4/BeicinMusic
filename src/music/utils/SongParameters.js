@@ -1,17 +1,35 @@
 module.exports = class UrlParameters {
-    static typeUrl(url) {
-        let type = false;
-        const types = [{
-            name: 'playlist',
-            tests: ['playlist?list=']
-        }, {
-            name: 'video',
-            tests: ['watch?v=', 'youtu.be/']
-        }];
+    static typeUrl(url, type = false) {
+        const regexp = [
+            {
+                type: 'spotifyTrack',
+                tests: [
+                    /^(?:https?:\/\/|)?(?:www\.)?open\.spotify\.com\/track\/([a-zA-Z\d-_]+)/,
+                    /spotify:track:([a-zA-Z\d-_]+)$/
+                ]
+            }, {
+                type: 'spotifyPlaylist',
+                tests: [
+                    /^(?:https?:\/\/|)?(?:www\.)?open\.spotify\.com(?:\/user\/[a-zA-Z\d-_]+)?\/playlist\/([a-zA-Z\d-_]+)/,
+                    /^spotify(?::user:[a-zA-Z\d-_]+)?:playlist:([a-zA-Z\d-_]+)/
+                ]
+            }, {
+                type: 'youtubeTrack',
+                tests: [
+                    /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/
+                ]
+            },
+            {
+                type: 'youtubePlaylist',
+                tests: [
+                    /https?:\/\/(www.youtube.com|youtube.com)\/playlist\?list=/g
+                ]
+            }
+        ];
 
-        for (let type of types) {
-            for (let test of type.tests) {
-                if (url.includes(test)) return type = type.name;
+        for (let t of regexp) {
+            for (let test of t.tests) {
+                if (url.match(test)) return type = t.type;
             }
         }
         return type;
