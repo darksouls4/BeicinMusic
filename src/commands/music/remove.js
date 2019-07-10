@@ -5,7 +5,7 @@ module.exports = class Remove extends Command {
         super(client, {
             name: 'remove',
             aliases: ['tirar'],
-            roleDj: false
+            roleDj: true
         })
     }
 
