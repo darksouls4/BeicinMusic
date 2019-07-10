@@ -1,15 +1,25 @@
 const { Client, Collection } = require("discord.js");
 const loaders = require("./loaders/");
 
+/**
+ * @constructor
+ */
 module.exports = class BeicinMusic extends Client {
+    /**
+     * @param {object} options As opções especificadas para o client do Bot 
+     */
     constructor(options = {}) {
         super(options)
         this.prefix = 'bm!'
-        this.managers = ['254797971831390211', '221865218840592384']
+        this.managers = ['id1', 'id2'] // Esse é o item que você deve localizar!
         this.collection = Collection
     }
 
+    /**
+     * @param {number} loadeds número dos modulos que foram carregados com sucesso
+     */
     async login(loadeds = 0) {
+        // loadeds não precisa ser passado como parâmetro na index.
         const token = process.env.TOKEN || this.Error('No token identify!');
         const LOADERS = Object.values(loaders);
 
