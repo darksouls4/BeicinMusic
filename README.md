@@ -2,6 +2,7 @@
     <img width="128px" src="https://i.imgur.com/CkYXj9u.png"><br>
 </div>
 
+## Versão Estável
 # BeicinMusic - Simples Bot de Música
 Um simples bot de música feito em **JavaScript** utilizando **NodeJS**.  
 Criado com o intuito de ajudar criadores de **BotsDiscord** que não sabe por onde começar a criar um bot de música.
