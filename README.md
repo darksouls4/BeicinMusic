@@ -8,7 +8,7 @@ Criado com o intuito de ajudar criadores de **BotsDiscord** que não sabe por on
 
 # Como Instalar:
 #### Nota:
-Caso você utilize a versão estável do **discord.js**, adquirida diretamente pelo **`npm`**, você deverá instalar em sua máquina a versão **estável** - [Clicando Aqui](https://github.com/beicin/BeicinMusic/tree/stable).
+Caso você utilize a versão estável do **discord.js**, adquirida diretamente pelo **`npm i discord.js`**, você deverá instalar em sua máquina a versão **estável** - [Clicando Aqui](https://github.com/beicin/BeicinMusic/tree/stable).
 ### Primeiro Passo:
 Clone o repositório em sua máquina: `git clone https://github.com/beicin/BeicinMusic`
 ### Segundo Passo:
