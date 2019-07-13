@@ -6,11 +6,11 @@ module.exports = class MusicPlayer {
         this.queue = new client.collection
     }
 
-    async play(songs, guild, channel, addedBy) {
+    async play(songs, guild, voiceChannel, channel, addedBy) {
         let guildQueue = this.queue.get(guild.id);
 
         if (!guildQueue) {
-            guildQueue = new (QueueMusic)(guild, channel, this.client);
+            guildQueue = new (QueueMusic)(guild, voiceChannel, channel, this.client);
             guildQueue.set();
         }
 
