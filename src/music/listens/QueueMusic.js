@@ -4,10 +4,11 @@ const moment = require("moment");
 require("moment-duration-format");
 
 module.exports = class MusicQueue extends GuildMusic {
-    constructor(guild, channel, client) {
+    constructor(guild, voiceChannel, channel, client) {
         super(guild, client);
         this.initQueue = Date.now()
-        this.voiceChannel = channel
+        this.voiceChannel = voiceChannel
+        this.msgChannel = channel
         this.client = client
         this.guild = guild
         this.songs = []
@@ -29,13 +30,13 @@ module.exports = class MusicQueue extends GuildMusic {
     get queueFullDuration() {
         let arr = this.songs.concat([this.songPlaying]);
         for (let i = 0; i < arr.length; i++) arr[i] = arr[i].ms;
-        let calcInSeconds = (arr.reduce((a, b) => a + b, 0)) - (this.streamDispatcher.streamTime);
+        let calcInSeconds = (arr.reduce((a, b) => a + b, 0)) - (this.dispatcher.streamTime);
         return moment.duration(calcInSeconds, 'milliseconds').format('hh:mm:ss', { stopTrim: 'm' });
     }
 
     get nowDuration() {
         let stopTrim = this.songPlaying.durationContent.split(':').length > 2 ? 'h' : 'm';
-        return moment.duration(this.streamDispatcher.streamTime, 'milliseconds').format('hh:mm:ss', { stopTrim });
+        return moment.duration(this.dispatcher.streamTime, 'milliseconds').format('hh:mm:ss', { stopTrim });
     }
 
     set() {
@@ -47,7 +48,7 @@ module.exports = class MusicQueue extends GuildMusic {
     }
 
     skip() {
-        return this.streamDispatcher.end();
+        return this.dispatcher.end();
     }
 
     queueLoop(l) {
@@ -66,7 +67,7 @@ module.exports = class MusicQueue extends GuildMusic {
 
     jump(num) {
         this.songs = this.songs.splice(num - 1);
-        return this.streamDispatcher.end();
+        return this.dispatcher.end();
     }
 
     setLastMesage(msg) {
@@ -85,6 +86,6 @@ module.exports = class MusicQueue extends GuildMusic {
     async volUpdate(vol) {
         this.volume = vol;
         this.modifyVolume = true
-        return this.streamDispatcher.setVolume(this.setVol(vol));
+        return this.dispatcher.setVolume(this.setVol(vol));
     }
 }
