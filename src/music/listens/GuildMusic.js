@@ -41,7 +41,7 @@ module.exports = class GuildMusic extends EventEmitter {
         this._queue.songs.shift();
 
         try {
-            const stream = await ytdlDiscord(song.url);
+            const stream = ytdlDiscord(song.url);
             stream.on('error', () => {
                 this.emit('error', song);
                 this.viewQueueContent();
