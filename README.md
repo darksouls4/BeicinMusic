@@ -9,7 +9,7 @@ Criado com o intuito de ajudar criadores de **BotsDiscord** que não sabe por on
 
 # Como Instalar:
 ### Primeiro Passo:
-Clone o repositório em sua máquina: `git clone https://github.com/beicin/BeicinMusic`
+Clone o repositório em sua máquina: `git clone -b stable --single-branch https://github.com/beicin/BeicinMusic`
 ### Segundo Passo:
 Feito o passo anterior, você precisa instalar as dependências do projeto.  
 Em seu terminal, digite `npm install`.
