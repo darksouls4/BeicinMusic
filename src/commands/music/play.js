@@ -11,7 +11,7 @@ module.exports = class Play extends Command {
     }
 
     async run({ voiceChannel, channel, guild, author, args }) {
-        const trueResult = await this.verifyVoice(guild, channel, author, voiceChannel);
+        const trueResult = await this.verifyVoice(guild, channel, author, voiceChannel, true);
         if (trueResult) {
             const paramUrl = /^(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
             const search = args.slice(0).join(' ');
@@ -29,7 +29,7 @@ module.exports = class Play extends Command {
                 if (Array.isArray(result) && result.length) {
                     let queueBreak = this.client.music.module.queue.get(guild.id);
                     try {
-                        this.client.music.module.play(result, guild, voiceChannel, author);
+                        this.client.music.module.play(result, guild, voiceChannel, channel, author);
                         let guildQueue = this.client.music.module.queue.get(guild.id);
                         if (!queueBreak) this.responseMusic(guildQueue, channel);
                     } catch (err) {
