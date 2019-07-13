@@ -38,9 +38,18 @@ module.exports = class Command {
         }
     }
 
-    verifyVoice(guild, channel, author, voiceChannel) {
+    verifyVoice(guild, channel, author, voiceChannel, playCommand = false) {
         const embed = new ClientEmbed(author);
         const guildQueue = this.client.music.module.queue.get(guild.id);
+
+        if (voiceChannel && playCommand && !guildQueue && !(voiceChannel.joinable && voiceChannel.speakable)) {
+            const err = voiceChannel.joinable ? 'falar' : 'conectar';
+            channel.send(embed
+                .setTitle(`Não possuo permissões necessárias para ${err} nesse canal de voz!`)
+                .setColor(process.env.ERR_COLOR)
+            )
+            return false;
+        }
 
         if (!voiceChannel) {
             let response = 'Por favor conecte-se a um canal de voz!'
