@@ -21,7 +21,7 @@ Youtube Data v3 | [Clique Aqui](https://console.cloud.google.com/marketplace/det
 Spotify | [Clique Aqui](https://developer.spotify.com/dashboard/applications)
 ### Quarto e último Passo:
 #### Bom, se você fez os passos anteriores corretamente, vamos prosseguir!
-Creio que já tenha pego o **token** de seu bot. Não pegou ? Não tem problema... [clique aqui]() pegue seu token e volte, eu estarei te esperando, rsrs.  
+Creio que já tenha pego o **token** de seu bot. Não pegou ? Não tem problema... [clique aqui](https://discordapp.com/developers/applications/) pegue seu token e volte, eu estarei te esperando, rsrs.  
 
 Agora só ligar seu bot! em sua linha de comando digite `node .`
 
