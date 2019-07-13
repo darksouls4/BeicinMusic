@@ -1,15 +1,11 @@
 const { EventEmitter } = require("events");
+const youtube_dl = require('youtube-dl');
 const moment = require("moment");
 
-const ytdlDiscord = require('ytdl-core-discord');
-
 const streamOptions = {
-    fec: true,
     seek: 0,
-    passes: 12,
-    type: 'opus',
-    bitrate: 524,
-    highWaterMark: 32
+    passes: 10,
+    bitrate: 1024
 }
 
 module.exports = class GuildMusic extends EventEmitter {
@@ -19,12 +15,10 @@ module.exports = class GuildMusic extends EventEmitter {
         this.guild = guild
         this.connection = false
         this.dispatcher = false
-        this.streamDispatcher = false
 
         this.on('stopForce', () => {
             this.removeAllListeners();
             this.deleteLastMessage();
-            this.dispatcher.destroy();
             this.connection.disconnect();
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
@@ -35,11 +29,6 @@ module.exports = class GuildMusic extends EventEmitter {
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
         });
-        this.on('errorInStream', (s, e) => {
-            console.log(('StreamError in guild ' + `${this.guild.name}/-ID: ${this.guild.id}`), e);
-            this.emit('errorSong', s /*, e */)
-            return this.viewQueueContent();
-        })
     }
 
     async play(song) {
@@ -48,19 +37,22 @@ module.exports = class GuildMusic extends EventEmitter {
         this._queue.songs.shift();
 
         try {
-            const stream = await ytdlDiscord(song.url);
-            stream.on('error', (e) => this.emit('errorInStream', song, e));
-            this.streamDispatcher = await this.dispatcher.play(stream, streamOptions);
-            this.streamDispatcher.setFEC(true);
+            const stream = youtube_dl(song.url);
+            stream.on('error', () => {
+                this.emit('error', song);
+                this.viewQueueContent();
+            });
+            this.dispatcher = await this.connection.playStream(stream, streamOptions);
         } catch (e) {
-            return this.emit('errorInStream', song, e);
+            this.emit('error', song, e);
+            return this.viewQueueContent();
         }
 
         this.emiters(song);
         this._queue.playing = true
         this._queue.songPlaying = song
 
-        if (!this._queue.modifyVolume) this.streamDispatcher.setVolumeLogarithmic(1.80);
+        if (!this._queue.modifyVolume) this.dispatcher.setVolumeLogarithmic(1.2);
         return this.client.emit('updatePresenceForMusic');
     }
 
@@ -68,15 +60,14 @@ module.exports = class GuildMusic extends EventEmitter {
         let song = this._queue.songs[num];
         if (!song || !song.url) throw new Error('No song identify');
         this.connection = await this._queue.voiceChannel.join();
-        this.dispatcher = this.connection;
         return this.play(song);
     }
 
     emiters(s) {
-        if (this.dispatcher && this.streamDispatcher) {
-            this.streamDispatcher.on('start', () => this.emit('start', s));
-            this.streamDispatcher.on('error', (e) => this.emit('errorSong', s, e));
-            this.streamDispatcher.on('finish', () => {
+        if (this.dispatcher) {
+            this.dispatcher.on('start', () => this.emit('start', s));
+            this.dispatcher.on('error', () => this.emit('error', s));
+            this.dispatcher.on('end', () => {
                 this.deleteLastMessage();
                 this.viewQueueContent();
             });
@@ -102,7 +93,7 @@ module.exports = class GuildMusic extends EventEmitter {
     async restartPlayerForLoop() {
         const songs = this._queue.songsBackup;
         await Promise.all(songs.map(song => this._queue.songs.push(song)));
-        return this.play(this._queue.songs[0]);
+        return this.goPlay(0);
     }
 
     async pushSongs(songs, addedBy, returnPlayer = false) {
@@ -114,5 +105,17 @@ module.exports = class GuildMusic extends EventEmitter {
         }));
         if (returnPlayer) this.play(this._queue.songs[0]);
         return this.emit('queue', songs, addedBy);
+    }
+
+    errorResponse() {
+        const songsBySkip = this._queue.songs.size;
+        if (songsBySkip) {
+            return this.goPlay(0);
+        } else {
+            if (this._queue.songsBackup.indexOf(this._queue.songPlaying) != -1) {
+                this._queue.songsBackup.splice(this.songsBackup.indexOf(this._queue.songPlaying), 1);
+            }
+            return this.restartPlayerForLoop();
+        }
     }
 }
