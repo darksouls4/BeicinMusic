@@ -28,7 +28,7 @@ module.exports = class Nowplaying extends Command {
                 .addField('Adicionado Por', song.addedBy.toString(), false)
                 .addField('Duração', songDuration, true)
                 .addField('Posição na Queue', argsSong ? `**\`${(guildQueue.songs.indexOf(argsSong) + 1)}°\`**` : '**\`Tocando Agora\`**', true)
-                .setFooter(footer, author.displayAvatarURL())
+                .setFooter(footer, author.displayAvatarURL)
                 .setImage(song.thumbnail.url)
             )
         } else {
