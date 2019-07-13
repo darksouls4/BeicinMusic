@@ -7,6 +7,8 @@ Um simples bot de música feito em **JavaScript** utilizando **NodeJS**.
 Criado com o intuito de ajudar criadores de **BotsDiscord** que não sabe por onde começar a criar um bot de música.
 
 # Como Instalar:
+### Nota:
+Caso você utilize a versão estável do **discord.js**, adquirida diretamente pelo `npm`, você deverá instalar em sua máquina a versão **[estável]** [clicando aqui](https://github.com/beicin/BeicinMusic/tree/stable).
 ### Primeiro Passo:
 Clone o repositório em sua máquina: `git clone https://github.com/beicin/BeicinMusic`
 ### Segundo Passo:
