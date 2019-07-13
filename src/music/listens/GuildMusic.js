@@ -19,6 +19,7 @@ module.exports = class GuildMusic extends EventEmitter {
         this.on('stopForce', () => {
             this.removeAllListeners();
             this.deleteLastMessage();
+            this.dispatcher.destroy();
             this.connection.disconnect();
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
@@ -29,6 +30,11 @@ module.exports = class GuildMusic extends EventEmitter {
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
         });
+        this.on('errorInStream', (s, e) => {
+            console.log(('StreamError in guild ' + `${this.guild.name}/-ID: ${this.guild.id}`), e.message);
+            this.emit('errorSong', s, e);
+            return this.viewQueueContent();
+        })
     }
 
     async play(song) {
@@ -37,15 +43,9 @@ module.exports = class GuildMusic extends EventEmitter {
         this._queue.songs.shift();
 
         try {
-            const stream = youtube_dl(song.url);
-            stream.on('error', () => {
-                this.emit('error', song);
-                this.viewQueueContent();
-            });
-            this.dispatcher = await this.connection.playStream(stream, streamOptions);
+            this.dispatcher = await this.connection.playStream(youtube_dl(song.url), streamOptions);
         } catch (e) {
-            this.emit('error', song, e);
-            return this.viewQueueContent();
+            return this.emit('errorInStream', song, e);
         }
 
         this.emiters(song);
@@ -66,8 +66,8 @@ module.exports = class GuildMusic extends EventEmitter {
     emiters(s) {
         if (this.dispatcher) {
             this.dispatcher.on('start', () => this.emit('start', s));
-            this.dispatcher.on('error', () => this.emit('error', s));
-            this.dispatcher.on('end', () => {
+            this.dispatcher.on('error', (e) => this.emit('errorInStream', s, e));
+            this.dispatcher.on('finish', () => {
                 this.deleteLastMessage();
                 this.viewQueueContent();
             });
