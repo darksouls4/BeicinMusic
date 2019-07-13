@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const opts = {
+new (require('./src/Client.js'))({
     autoReconnect: true,
     fetchAllMembers: true,
     disableEveryone: false,
@@ -10,8 +10,4 @@ const opts = {
     messageCacheLifetime: 1680,
     messageSweepInterval: 1680,
     disabledEvents: ['typingStart', 'typingStop', 'guildMemberSpeaking']
-}
-
-const required = require('./src/Client.js');
-const client = new required(opts)
-client.login();
+}).login();
