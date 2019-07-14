@@ -1,11 +1,14 @@
 const { EventEmitter } = require("events");
-const youtube_dl = require('youtube-dl');
+const ytdlDiscord = require('ytdl-core-discord');
 const moment = require("moment");
 
 const streamOptions = {
+    fec: true,
     seek: 0,
     passes: 10,
-    bitrate: 1024
+    type: 'opus',
+    bitrate: 1024,
+    highWaterMark: 36
 }
 
 module.exports = class GuildMusic extends EventEmitter {
@@ -19,6 +22,7 @@ module.exports = class GuildMusic extends EventEmitter {
         this.on('stopForce', () => {
             this.removeAllListeners();
             this.deleteLastMessage();
+            this.dispatcher.destroy();
             this.connection.disconnect();
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
@@ -42,7 +46,9 @@ module.exports = class GuildMusic extends EventEmitter {
         this._queue.songs.shift();
 
         try {
-            this.dispatcher = await this.connection.playStream(youtube_dl(song.url), streamOptions);
+            const stream = await ytdlDiscord(song.url);
+            stream.on('error', (e) => this.emit('errorInStream', song, e));
+            this.dispatcher = await this.connection.play(stream, streamOptions);
         } catch (e) {
             return this.emit('errorInStream', song, e);
         }
@@ -65,8 +71,8 @@ module.exports = class GuildMusic extends EventEmitter {
     emiters(s) {
         if (this.dispatcher) {
             this.dispatcher.on('start', () => this.emit('start', s));
-            this.dispatcher.on('error', (e) => this.emit('errorInStream', s, e));
-            this.dispatcher.on('finish', () => {
+            this.dispatcher.on('error', (e) => this.emit('errorSong', s, e));
+            this.dispatcher.on('end', () => {
                 this.deleteLastMessage();
                 this.viewQueueContent();
             });
