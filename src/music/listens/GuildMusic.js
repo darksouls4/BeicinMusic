@@ -19,7 +19,6 @@ module.exports = class GuildMusic extends EventEmitter {
         this.on('stopForce', () => {
             this.removeAllListeners();
             this.deleteLastMessage();
-            this.dispatcher.destroy();
             this.connection.disconnect();
             this.client.music.module.queue.delete(this.guild.id);
             return this.client.emit('updatePresenceForMusic');
