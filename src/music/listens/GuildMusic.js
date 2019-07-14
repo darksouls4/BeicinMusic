@@ -72,7 +72,7 @@ module.exports = class GuildMusic extends EventEmitter {
         if (this.dispatcher) {
             this.dispatcher.on('start', () => this.emit('start', s));
             this.dispatcher.on('error', (e) => this.emit('errorSong', s, e));
-            this.dispatcher.on('end', () => {
+            this.dispatcher.on('finish', () => {
                 this.deleteLastMessage();
                 this.viewQueueContent();
             });
